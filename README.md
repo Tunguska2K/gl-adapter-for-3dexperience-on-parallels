@@ -117,5 +117,4 @@ generates the export thunks (`thunks.S`, `names.h`, `opengl32.def`) from `src/ex
 ## License
 
 MIT, see [LICENSE](LICENSE). "3DEXPERIENCE", "CATIA" and "SOLIDWORKS" are trademarks of Dassault
-Systèmes; "Parallels" is a trademark of Parallels International GmbH. They are named here only to
-describe compatibility.
+Systèmes; "Parallels" is a trademark of Parallels International GmbH.
