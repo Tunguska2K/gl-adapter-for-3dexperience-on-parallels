@@ -84,12 +84,6 @@ be upgraded" warning.
 - **Do not** install Microsoft's "OpenCL, OpenGL and Vulkan Compatibility Pack" in the VM.
   3DEXPERIENCE crashes at startup with it.
 - **Do not** try to hide `GL_ARB_buffer_storage` (`SHIM_HIDE_EXT`). 3DEXPERIENCE crashes without it.
-- Windows Explorer's built-in unzip has been seen to stop silently partway through the very large
-  3DEXPERIENCE installer zip, which then fails with "OpenZip: 0x80030002". Extract it with
-  `tar -xf <zip> -C <folder>` or 7-Zip instead.
-- If your organisation's VPN client (for example Cisco Secure Client) runs on the Mac, it may block
-  the Mac's network after you disconnect it. Toggle its network extension in System Settings >
-  General > Login Items & Extensions, or restart the Mac.
 
 ## Settings and troubleshooting
 
