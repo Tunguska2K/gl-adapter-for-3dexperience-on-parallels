@@ -28,7 +28,7 @@
 #include "names.h"
 
 // Marker the installer uses to recognise this DLL (kept by the linker).
-#define GLADAPTER_VERSION "0.1.0"
+#define GLADAPTER_VERSION "0.2.0"
 __attribute__((used)) static const char g_gladapter_marker[] = "GLADAPTER-3DX-MARKER version " GLADAPTER_VERSION;
 
 typedef unsigned int GLenum, GLuint, GLbitfield;
@@ -2143,6 +2143,60 @@ static PROC resolve_proc(LPCSTR name)
     return NULL;
 }
 
+// SHIM_DEBUG=1: log illegal-instruction / access-violation exceptions with the faulting module,
+// offset, instruction bytes and the module addresses found on the stack (first-chance; the
+// application's own handlers still run).
+static void veh_module(ULONG_PTR addr, char *out, int n)
+{
+    HMODULE m = NULL;
+    char path[MAX_PATH] = "?";
+    if (GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCSTR)addr, &m) && m) {
+        GetModuleFileNameA(m, path, MAX_PATH);
+        const char *b = path; for (const char *c = path; *c; c++) if (*c == '\\') b = c + 1;
+        wsprintfA(out, "%s+0x%x", b, (unsigned)(addr - (ULONG_PTR)m));
+    } else {
+        wsprintfA(out, "%p(no module)", (void *)addr);
+    }
+    (void)n;
+}
+static LONG WINAPI shim_veh(EXCEPTION_POINTERS *ep)
+{
+    DWORD code = ep->ExceptionRecord->ExceptionCode;
+    if (code != 0xC000001D && code != 0xC0000005 && code != 0xC0000096)
+        return EXCEPTION_CONTINUE_SEARCH;
+    static volatile LONG n;
+    LONG k = InterlockedIncrement(&n);
+    if (k > 12) return EXCEPTION_CONTINUE_SEARCH;
+    ULONG_PTR ip = (ULONG_PTR)ep->ExceptionRecord->ExceptionAddress;
+    char where[MAX_PATH + 32];
+    veh_module(ip, where, sizeof where);
+    char bytes[64] = "";
+    MEMORY_BASIC_INFORMATION mbi;
+    if (VirtualQuery((void *)ip, &mbi, sizeof mbi) && mbi.State == MEM_COMMIT && !(mbi.Protect & (PAGE_NOACCESS | PAGE_GUARD))) {
+        const unsigned char *b = (const unsigned char *)ip;
+        for (int i = 0; i < 16; i++) wsprintfA(bytes + i * 3, "%02x ", b[i]);
+    }
+    log_fmt("EXCEPTION 0x%08x at %s thread=%u bytes=[%s] protect=0x%x", (unsigned)code, where, (unsigned)GetCurrentThreadId(), bytes, (unsigned)mbi.Protect);
+#ifdef _M_X64
+    ULONG_PTR *sp = (ULONG_PTR *)ep->ContextRecord->Rsp;
+    int shown = 0;
+    for (int i = 0; i < 256 && shown < 14; i++) {
+        ULONG_PTR v;
+        if (!VirtualQuery(sp + i, &mbi, sizeof mbi) || mbi.State != MEM_COMMIT) break;
+        v = sp[i];
+        HMODULE m = NULL;
+        if (v > 0x10000 && GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCSTR)v, &m) && m) {
+            char w[MAX_PATH + 32]; veh_module(v, w, sizeof w);
+            log_fmt("  stack[%d] %s", i, w);
+            shown++;
+        }
+    }
+#endif
+    if (k <= 3)
+        trace_dump_ring(code == 0xC0000005 ? "access violation" : "exception", 0);
+    return EXCEPTION_CONTINUE_SEARCH;
+}
+
 BOOL WINAPI DllMain(HINSTANCE inst, DWORD reason, LPVOID reserved)
 {
     (void)inst; (void)reserved;
@@ -2154,6 +2208,8 @@ BOOL WINAPI DllMain(HINSTANCE inst, DWORD reason, LPVOID reserved)
         DWORD n = GetEnvironmentVariableA("SHIM_DEBUG", v, sizeof v);
         g_debug = n > 0 && n < sizeof v && v[0] == '1';
         g_tr_on = (unsigned char)g_debug;   // call ring always recorded in debug mode
+        if (g_debug)
+            AddVectoredExceptionHandler(1, shim_veh);
         n = GetEnvironmentVariableA("SHIM_GLDEBUG", v, sizeof v);
         g_gldebug = n > 0 && n < sizeof v && v[0] == '1';
         char gv[16];
