@@ -102,20 +102,6 @@ with per-draw state, thumbnails and shader sources. A line `calls` in
 `%LOCALAPPDATA%\GLAdapter\ctl.txt` adds a full GL call trace. All switches are listed at the top of
 `src/capture.c`. Captures contain 3DEXPERIENCE's shader code, so do not publish them.
 
-## How it was found
-
-The short version: frame captures showed the shaded faces being drawn in the first frames and
-then skipped. 3DEXPERIENCE decides which parts to draw with GPU occlusion culling. The depth it
-tested against was empty (Parallels cannot copy depth out of multisample depth textures), its
-bounding boxes read wrong matrices (ranged buffer textures ignore their range), and even after both
-were fixed the result never made it back to the CPU, which kept concluding that nothing was
-visible. Three bugs stacked on top of each other, each one hiding the next.
-
-`tests/gltest2.c` is the offline probe that pinned the driver bugs down: about 140 small OpenGL
-render tests. Run it in the VM to see what the driver does on its own, or put the adapter's
-`opengl32.dll` next to it to test through the adapter. Some tests fail on the raw driver on purpose;
-those are the bugs listed above.
-
 ## Build
 
 Needs [Zig](https://ziglang.org) (tested with 0.17) and Python 3, on macOS, Linux or Windows:
