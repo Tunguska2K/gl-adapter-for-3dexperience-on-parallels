@@ -1,0 +1,9 @@
+dist/
+src/names.h
+src/thunks.S
+src/opengl32.def
+*.pdb
+*.lib
+*.log
+cap/
+*.glsl
