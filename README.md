@@ -36,7 +36,7 @@ For student-sized parts and assemblies you will not notice. For a whole aircraft
 ## Tested with
 
 - Parallels Desktop 27.1, Windows 11 on ARM, Mac Studio (Apple M5 Ultra)
-- 3DEXPERIENCE R2024x (B426, FP2528), SOLIDWORKS profile, OpenGL 4.3 renderer
+- 3DEXPERIENCE R2024x (B426, FP2528), OpenGL 4.3 renderer
 - Window mode (Coherence mode should behave the same, but is less tested)
 
 ## Install
