@@ -39,10 +39,6 @@ For student-sized parts and assemblies you will not notice. For a whole aircraft
 - 3DEXPERIENCE R2024x (B426, FP2528), SOLIDWORKS profile, OpenGL 4.3 renderer
 - Window mode (Coherence mode should behave the same, but is less tested)
 
-Anything else is unexplored territory. Other virtualization apps (VMware Fusion, UTM, ...) do not
-offer OpenGL 4.3 to Windows on ARM guests as far as known, so the adapter is not expected to help
-there.
-
 ## Install
 
 1. Install 3DEXPERIENCE in the Windows VM as usual, and close it.
