@@ -18,22 +18,6 @@ for it.
 
 > Not affiliated with, endorsed by, or supported by Dassault Systèmes or Parallels.
 
-## Disclaimer (please read, it's short and mildly entertaining)
-
-This adapter was **vibe coded**: one student, one AI pair programmer (Claude), one weekend, and
-an unreasonable number of frame captures of a part that refused to be shaded. It works on the
-machine it was built on. It might work on yours. It was not written by a graphics driver team,
-it has no test lab, and its QA department is a single Mac Studio.
-
-**Maintenance plan:** this repository will be actively maintained right up until its author no
-longer needs CATIA, which is to say roughly the moment the last CAD exam is handed in. After that
-it enters its retirement phase: no updates, issues answered at geological speed, and a firm belief
-that Parallels or Dassault will have fixed everything by then anyway. Pull requests are welcome
-and will be read with gratitude, possibly years later.
-
-Use at your own risk. Keep backups of anything you care about. If it breaks your CAD homework,
-the adapter will be sincerely sorry, but it will not do the homework for you.
-
 ## What it does
 
 The adapter forwards every OpenGL call to the Parallels driver and only steps in where something
@@ -55,15 +39,11 @@ For student-sized parts and assemblies you will not notice. For a whole aircraft
 
 ## Tested with
 
-- Parallels Desktop 27.1, Windows 11 on ARM (build 26300), Mac Studio (Apple M5 Ultra)
-- 3DEXPERIENCE R2024x (B426, FP2528), SOLIDWORKS profile, OpenGL 4.3 renderer
+- Parallels Desktop 27.1, Windows 11 on ARM, Mac Studio (Apple M5 Ultra)
+- 3DEXPERIENCE R2024x (B426, FP2528), OpenGL 4.3 renderer
 - Window mode (Coherence mode should behave the same, but is less tested)
 - VMPal (Windows 11 on ARM build 26300, OpenGL 4.1 Mesa driver): works **without** the adapter,
   see [VMPal](#vmpal)
-
-Anything else is unexplored territory. VMware Fusion and UTM offer DirectX but, as far as known,
-no usable OpenGL to Windows on ARM guests, so neither the adapter nor 3DEXPERIENCE's OpenGL
-renderer is expected to work there.
 
 ## Install
 
@@ -147,14 +127,6 @@ come back. If it does, `SHIM_DEBUG=1` with the adapter installed logs the exact 
 - **Do not** install Microsoft's "OpenCL, OpenGL and Vulkan Compatibility Pack" in the VM.
   3DEXPERIENCE crashes at startup with it.
 - **Do not** try to hide `GL_ARB_buffer_storage` (`SHIM_HIDE_EXT`). 3DEXPERIENCE crashes without it.
-- "Illegal instruction" / 0xC000001D right after login: Windows is too old to emulate AVX, see
-  [VMPal](#vmpal) for the build numbers. This applies to any virtualization app.
-- Windows Explorer's built-in unzip has been seen to stop silently partway through the very large
-  3DEXPERIENCE installer zip, which then fails with "OpenZip: 0x80030002". Extract it with
-  `tar -xf <zip> -C <folder>` or 7-Zip instead.
-- If your organisation's VPN client (for example Cisco Secure Client) runs on the Mac, it may block
-  the Mac's network after you disconnect it. Toggle its network extension in System Settings >
-  General > Login Items & Extensions, or restart the Mac.
 
 ## Settings and troubleshooting
 
@@ -173,20 +145,6 @@ with per-draw state, thumbnails and shader sources. A line `calls` in
 `%LOCALAPPDATA%\GLAdapter\ctl.txt` adds a full GL call trace. All switches are listed at the top of
 `src/capture.c`. Captures contain 3DEXPERIENCE's shader code, so do not publish them.
 
-## How it was found
-
-The short version: frame captures showed the shaded faces being drawn in the first frames and
-then skipped. 3DEXPERIENCE decides which parts to draw with GPU occlusion culling. The depth it
-tested against was empty (Parallels cannot copy depth out of multisample depth textures), its
-bounding boxes read wrong matrices (ranged buffer textures ignore their range), and even after both
-were fixed the result never made it back to the CPU, which kept concluding that nothing was
-visible. Three bugs stacked on top of each other, each one hiding the next.
-
-`tests/gltest2.c` is the offline probe that pinned the driver bugs down: about 140 small OpenGL
-render tests. Run it in the VM to see what the driver does on its own, or put the adapter's
-`opengl32.dll` next to it to test through the adapter. Some tests fail on the raw driver on purpose;
-those are the bugs listed above.
-
 ## Build
 
 Needs [Zig](https://ziglang.org) (tested with 0.17) and Python 3, on macOS, Linux or Windows:
@@ -202,5 +160,4 @@ generates the export thunks (`thunks.S`, `names.h`, `opengl32.def`) from `src/ex
 ## License
 
 MIT, see [LICENSE](LICENSE). "3DEXPERIENCE", "CATIA" and "SOLIDWORKS" are trademarks of Dassault
-Systèmes; "Parallels" is a trademark of Parallels International GmbH. They are named here only to
-describe compatibility.
+Systèmes; "Parallels" is a trademark of Parallels International GmbH.
