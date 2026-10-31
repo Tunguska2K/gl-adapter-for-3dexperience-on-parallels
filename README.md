@@ -14,22 +14,6 @@ Parallels OpenGL driver and quietly fixes everything that goes wrong in between.
 
 > Not affiliated with, endorsed by, or supported by Dassault Systèmes or Parallels.
 
-## Disclaimer (please read, it's short and mildly entertaining)
-
-This adapter was **vibe coded**: one student, one AI pair programmer (Claude), one weekend, and
-an unreasonable number of frame captures of a part that refused to be shaded. It works on the
-machine it was built on. It might work on yours. It was not written by a graphics driver team,
-it has no test lab, and its QA department is a single Mac Studio.
-
-**Maintenance plan:** this repository will be actively maintained right up until its author no
-longer needs CATIA, which is to say roughly the moment the last CAD exam is handed in. After that
-it enters its retirement phase: no updates, issues answered at geological speed, and a firm belief
-that Parallels or Dassault will have fixed everything by then anyway. Pull requests are welcome
-and will be read with gratitude, possibly years later.
-
-Use at your own risk. Keep backups of anything you care about. If it breaks your CAD homework,
-the adapter will be sincerely sorry, but it will not do the homework for you.
-
 ## What it does
 
 The adapter forwards every OpenGL call to the Parallels driver and only steps in where something
